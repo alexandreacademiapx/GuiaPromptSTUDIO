@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Prompt Studio — Guia Prático</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #00FFD1;
+    --teal-dim: rgba(0,255,209,0.12);
+    --teal-border: rgba(0,255,209,0.25);
+    --amber: #E8730A;
+    --amber-dim: rgba(232,115,10,0.12);
+    --navy: #0A0E1A;
+    --navy-mid: #111827;
+    --navy-card: #141C2E;
+    --navy-elevated: #1A2340;
+    --text-primary: #F0F4FF;
+    --text-secondary: #8A97B5;
+    --text-muted: #4A5678;
+    --divider: rgba(255,255,255,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    text-align: center;
+    overflow: hidden;
+    background: linear-gradient(160deg, #0D1428 0%, #0A0E1A 60%);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse at center, rgba(0,255,209,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Vectorscope ring — decorative */
+  .scope-ring {
+    position: absolute;
+    top: -140px; right: -140px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,255,209,0.08);
+    pointer-events: none;
+  }
+  .scope-ring::after {
+    content: '';
+    position: absolute;
+    top: 30px; left: 30px; right: 30px; bottom: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(232,115,10,0.06);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 20px;
+  }
+
+  .eyebrow::before, .eyebrow::after {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--teal);
+    opacity: 0.5;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 88px);
+    letter-spacing: 0.03em;
+    line-height: 0.95;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+
+  .hero h1 span {
+    color: var(--teal);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 18px auto 0;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+  }
+
+  /* Flow diagram inline */
+  .hero-flow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 36px;
+    background: var(--navy-card);
+    border: 1px solid var(--teal-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .flow-node {
+    padding: 10px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .flow-node.input { color: var(--text-secondary); }
+  .flow-node.engine { color: var(--teal); background: var(--teal-dim); }
+  .flow-node.output { color: var(--amber); }
+
+  .flow-arrow {
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 0 2px;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section {
+    padding: 64px 0;
+    border-top: 1px solid var(--divider);
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--teal-border);
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: 0.04em;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .section-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 300;
+    max-width: 600px;
+    margin-bottom: 36px;
+  }
+
+  /* ── FLUXO RÁPIDO ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--divider);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 680px) {
+    .steps { grid-template-columns: 1fr 1fr; }
+  }
+
+  .step {
+    background: var(--navy-card);
+    padding: 24px 20px;
+    position: relative;
+  }
+
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--teal);
+    line-height: 1;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+
+  .step-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .step-body {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── MODOS TABLE ── */
+  .mode-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mode-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 1fr;
+    gap: 1px;
+    background: transparent;
+  }
+
+  .mode-row.header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .mode-row.header .cell {
+    background: var(--navy-elevated);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 10px 16px;
+  }
+
+  .cell {
+    background: var(--navy-card);
+    padding: 16px;
+    font-size: 13.5px;
+  }
+
+  .mode-row:hover .cell {
+    background: var(--navy-elevated);
+  }
+
+  .mode-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .mode-row .cell:first-child {
+    border-left: 2px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .mode-row:hover .cell:first-child {
+    border-left-color: var(--teal);
+  }
+
+  .example-tag {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 10px;
+    background: var(--amber-dim);
+    border: 1px solid rgba(232,115,10,0.2);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--amber);
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  /* ── REFERÊNCIAS ── */
+  .ref-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 680px) {
+    .ref-cards { grid-template-columns: 1fr; }
+    .mode-row { grid-template-columns: 1fr; }
+  }
+
+  .ref-card {
+    background: var(--navy-card);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ref-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .ref-card.identity::before { background: var(--teal); }
+  .ref-card.uniform::before { background: var(--amber); }
+  .ref-card.copy::before { background: #A78BFA; }
+
+  .ref-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .ref-card.identity .ref-icon { background: var(--teal-dim); }
+  .ref-card.uniform .ref-icon { background: var(--amber-dim); }
+  .ref-card.copy .ref-icon { background: rgba(167,139,250,0.12); }
+
+  .ref-card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  .ref-card.identity .ref-card-title { color: var(--teal); }
+  .ref-card.uniform .ref-card-title { color: var(--amber); }
+  .ref-card.copy .ref-card-title { color: #A78BFA; }
+
+  .ref-card-sub {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .ref-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ref-list li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .ref-list li::before {
+    content: '–';
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── REGRA KEY ── */
+  .key-rule {
+    background: linear-gradient(135deg, rgba(0,255,209,0.05), rgba(232,115,10,0.04));
+    border: 1px solid var(--teal-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-top: 4px;
+  }
+
+  .key-rule-icon {
+    color: var(--teal);
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .key-rule-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .key-rule-text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* ── CHECKLIST DE ANEXOS ── */
+  .attach-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 540px) {
+    .attach-grid { grid-template-columns: 1fr; }
+  }
+
+  .attach-item {
+    background: var(--navy-card);
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .attach-item-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+
+  .attach-item p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── ENTREGA ── */
+  .delivery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 540px) {
+    .delivery-grid { grid-template-columns: 1fr; }
+    .ref-cards { grid-template-columns: 1fr; }
+  }
+
+  .delivery-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--navy-card);
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .delivery-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .delivery-item p {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .delivery-item strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+
+  /* ── PEDIDOS PRONTOS ── */
+  .copy-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 700px) {
+    .copy-cards { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 440px) {
+    .copy-cards { grid-template-columns: 1fr; }
+  }
+
+  .copy-card {
+    background: var(--navy-card);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    padding: 18px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .copy-card:hover {
+    border-color: var(--teal-border);
+    background: var(--navy-elevated);
+  }
+
+  .copy-card-mode {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 10px;
+  }
+
+  .copy-card-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    font-style: italic;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+  }
+
+  .copy-card:hover .copy-btn { color: var(--teal); }
+
+  /* ── DICA FINAL ── */
+  .tip-bar {
+    background: var(--navy-card);
+    border-top: 2px solid var(--amber);
+    border-radius: 0 0 10px 10px;
+    padding: 20px 24px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 12px;
+  }
+
+  .tip-bar span:first-child {
+    color: var(--amber);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .tip-bar strong { color: var(--text-primary); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--divider);
+    padding: 28px 24px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
+
+  footer strong { color: var(--teal); font-weight: 600; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--teal);
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 10px 18px;
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 999;
+  }
+
+  #toast.show { opacity: 1; }
+
+  /* Waveform decoration */
+  .waveform-bar {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 16px;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+
+  .waveform-bar span {
+    display: block;
+    width: 2px;
+    background: var(--teal);
+    border-radius: 1px;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="scope-ring"></div>
+  <div class="eyebrow">Guia Prático</div>
+  <h1>Image<br><span>Prompt Studio</span></h1>
+  <p class="hero-sub">Como criar, refinar e manter consistência visual sem precisar dominar termos técnicos.</p>
+
+  <div class="hero-flow">
+    <div class="flow-node input">Ideia / referência</div>
+    <div class="flow-arrow">›</div>
+    <div class="flow-node engine">GPT decide: câmera · lente · luz · composição</div>
+    <div class="flow-arrow">›</div>
+    <div class="flow-node output">Prompt em inglês</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- FLUXO RÁPIDO -->
+  <section>
+    <div class="section-label">01 &nbsp; Fluxo</div>
+    <h2 class="section-title">Como funciona em 4 passos</h2>
+    <p class="section-desc">Você informa a intenção criativa. O GPT decide os aspectos técnicos.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Escolha o modo</div>
+        <div class="step-body">Criar, refinar, adaptar referência, manter persona ou gerar variações.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Envie a base</div>
+        <div class="step-body">Ideia, prompt atual, Character Sheet, uniforme, produto ou imagem de referência.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Defina o limite</div>
+        <div class="step-body">Diga o que deve mudar e o que precisa permanecer exatamente igual.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Use o prompt</div>
+        <div class="step-body">Copie a saída em inglês para NanoBananaPro ou NanoBanana2.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODOS -->
+  <section>
+    <div class="section-label">02 &nbsp; Modos</div>
+    <h2 class="section-title">Quando usar cada modo</h2>
+    <p class="section-desc">Cada situação tem um modo específico. Identifique o seu e envie o que o GPT precisa.</p>
+
+    <div class="mode-grid">
+      <div class="mode-row header">
+        <div class="cell">Situação</div>
+        <div class="cell">O que enviar &amp; o que o GPT faz</div>
+        <div class="cell">Exemplo de pedido</div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Criar do zero</div><div style="font-size:12px;color:var(--text-muted)">Você não tem prompt ainda</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Uma ideia curta, uso/formato e restrições importantes.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> Prompt completo em inglês, pronto para gerar.</div>
+        <div class="cell"><div class="example-tag">"Crie uma capa 16:9 com um motorista em uma doca noturna, sem texto."</div></div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Refinar prompt</div><div style="font-size:12px;color:var(--text-muted)">Você tem um prompt e quer ajuste</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Prompt atual + mudança exata + itens que devem permanecer.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> O mesmo prompt, corrigido ou ajustado localmente.</div>
+        <div class="cell"><div class="example-tag">"Troque a posição da janela e mantenha rosto, cama, cor e enquadramento."</div></div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Imagem de referência</div><div style="font-size:12px;color:var(--text-muted)">Você tem uma foto de referência</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Imagem + indicação do que preservar: look, pose, ambiente, produto ou composição.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> Prompt que reproduz o comportamento visual da referência.</div>
+        <div class="cell"><div class="example-tag">"Use esta foto como referência de luz e enquadramento, mas troque o modelo."</div></div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Manter persona</div><div style="font-size:12px;color:var(--text-muted)">Você quer consistência de rosto/corpo</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Prompt da cena + Character Sheet + nova ação ou contexto.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> Prompt com rosto, idade, cabelo e corpo consistentes.</div>
+        <div class="cell"><div class="example-tag">"Use este Character Sheet e coloque a mesma pessoa dirigindo o caminhão."</div></div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Aplicar uniforme</div><div style="font-size:12px;color:var(--text-muted)">Você quer trocar a roupa da persona</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Persona/CS + imagem do uniforme + prompt ou briefing da cena.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> Prompt com uniforme fiel e identidade preservada.</div>
+        <div class="cell"><div class="example-tag">"Vista a persona com este uniforme, mantendo rosto, corpo e pose."</div></div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Produto / veículo</div><div style="font-size:12px;color:var(--text-muted)">Você precisa de consistência de objeto</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Imagens de diferentes ângulos + cores, materiais e detalhes obrigatórios.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> Descritiva 360 + prompt final consistente.</div>
+        <div class="cell"><div class="example-tag">"Crie a base 360 deste caminhão e depois uma cena dele na rodovia."</div></div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Variações controladas</div><div style="font-size:12px;color:var(--text-muted)">Você quer versões comparáveis</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Prompt/base aprovada + variável que pode mudar.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> Versões comparáveis sem perder o núcleo visual.</div>
+        <div class="cell"><div class="example-tag">"Gere três versões mudando apenas o enquadramento."</div></div>
+      </div>
+
+      <div class="mode-row">
+        <div class="cell"><div class="mode-name">Sem briefing pronto</div><div style="font-size:12px;color:var(--text-muted)">Você tem só palavras soltas</div></div>
+        <div class="cell"><strong style="font-size:12px;display:block;color:var(--text-primary);margin-bottom:4px">Envie:</strong> Palavras soltas, tema, uso e poucas restrições.<br><strong style="font-size:12px;display:block;color:var(--text-primary);margin-top:8px;margin-bottom:4px">Recebe:</strong> Base curta para confirmar ou prompt direto, se já houver dados suficientes.</div>
+        <div class="cell"><div class="example-tag">"Logística, motorista, risco, capa 16:9, sem logo."</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFERÊNCIAS -->
+  <section>
+    <div class="section-label">03 &nbsp; Referências</div>
+    <h2 class="section-title">Como as referências são interpretadas</h2>
+    <p class="section-desc">Cada arquivo tem uma função específica. Isso evita misturar identidade, roupa e conteúdo da cena.</p>
+
+    <div class="ref-cards">
+      <div class="ref-card identity">
+        <div class="ref-icon">🪪</div>
+        <div class="ref-card-title">Character Sheet</div>
+        <div class="ref-card-sub">Controla a identidade</div>
+        <ul class="ref-list">
+          <li>Rosto e geometria facial</li>
+          <li>Idade aparente e tom de pele</li>
+          <li>Cabelo e marcas visíveis</li>
+          <li>Tipo físico e proporções corporais</li>
+        </ul>
+      </div>
+      <div class="ref-card uniform">
+        <div class="ref-icon">👕</div>
+        <div class="ref-card-title">Referência de Uniforme</div>
+        <div class="ref-card-sub">Controla somente a roupa</div>
+        <ul class="ref-list">
+          <li>Modelo e corte da peça</li>
+          <li>Cores e materiais</li>
+          <li>Logos, faixas e bordados</li>
+          <li>Posicionamento dos elementos visuais</li>
+        </ul>
+      </div>
+      <div class="ref-card copy">
+        <div class="ref-icon">📝</div>
+        <div class="ref-card-title">Copy ou Briefing</div>
+        <div class="ref-card-sub">Controla o conteúdo da cena</div>
+        <ul class="ref-list">
+          <li>Ação e expressão facial</li>
+          <li>Linguagem corporal</li>
+          <li>Ambiente e enquadramento</li>
+          <li>Atmosfera e intenção narrativa</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="key-rule">
+      <div class="key-rule-icon">⚡</div>
+      <div class="key-rule-text">
+        <strong>Regra-chave:</strong> a roupa neutra do Character Sheet não é o figurino oficial. Havendo referência de uniforme, ela substitui <em>somente</em> a roupa — nunca o rosto, o corpo, a pose ou o ambiente da pessoa fotografada.
+      </div>
+    </div>
+  </section>
+
+  <!-- O QUE ANEXAR -->
+  <section>
+    <div class="section-label">04 &nbsp; Anexos &amp; Entrega</div>
+    <h2 class="section-title">O que anexar em cada caso</h2>
+    <p class="section-desc">Referências certas produzem refinamentos precisos.</p>
+
+    <div class="attach-grid">
+      <div class="attach-item">
+        <div class="attach-item-title">Refinamento</div>
+        <p>Prompt atual + alteração desejada + itens que não podem mudar.</p>
+      </div>
+      <div class="attach-item">
+        <div class="attach-item-title">Persona</div>
+        <p>Character Sheet + prompt da cena + ação ou expressão desejada.</p>
+      </div>
+      <div class="attach-item">
+        <div class="attach-item-title">Uniforme</div>
+        <p>Character Sheet ou persona + foto clara do uniforme (preferência: ângulo frontal com boa iluminação).</p>
+      </div>
+      <div class="attach-item">
+        <div class="attach-item-title">Produto / Veículo</div>
+        <p>Frente, traseira, laterais e detalhes de materiais ou grafismos.</p>
+      </div>
+      <div class="attach-item">
+        <div class="attach-item-title">Referência estética</div>
+        <p>Imagem + indicação do que copiar e do que substituir.</p>
+      </div>
+      <div class="attach-item">
+        <div class="attach-item-title">Sem referência</div>
+        <p>Palavras-chave, tema, uso final e restrições. O GPT infere o restante.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 40px;">Como é a entrega</h2>
+    <p class="section-desc" style="margin-top: 8px;">O GPT não gera a imagem. A saída é usada em uma plataforma externa.</p>
+
+    <div class="delivery-grid">
+      <div class="delivery-item">
+        <div class="delivery-dot"></div>
+        <p><strong>Prompt final em inglês</strong>Estruturado tecnicamente de CAMERA: até MOOD &amp; ART DIRECTION:.</p>
+      </div>
+      <div class="delivery-item">
+        <div class="delivery-dot"></div>
+        <p><strong>Parâmetros sugeridos</strong>Aspect ratio, variações e observações de uso — quando forem úteis.</p>
+      </div>
+      <div class="delivery-item">
+        <div class="delivery-dot"></div>
+        <p><strong>Descritiva 360</strong>Para produto ou veículo: consolidada antes do prompt final, para aprovação.</p>
+      </div>
+      <div class="delivery-item">
+        <div class="delivery-dot"></div>
+        <p><strong>Notas rápidas</strong>Somente quando houver risco ou restrição relevante (texto, logo, margem para CTA).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PEDIDOS PRONTOS -->
+  <section>
+    <div class="section-label">05 &nbsp; Templates</div>
+    <h2 class="section-title">Pedidos prontos para copiar</h2>
+    <p class="section-desc">Clique no card para copiar o texto. Cole diretamente no GPT.</p>
+
+    <div class="copy-cards">
+      <div class="copy-card" onclick="copyText(this, 'Crie um prompt para uma capa 16:9 de treinamento logístico, com um motorista em uma doca ao amanhecer, sem texto e com margem à esquerda.')">
+        <div class="copy-card-mode">Criar do zero</div>
+        <div class="copy-card-text">"Crie um prompt para uma capa 16:9 de treinamento logístico, com um motorista em uma doca ao amanhecer, sem texto e com margem à esquerda."</div>
+        <button class="copy-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+      </div>
+
+      <div class="copy-card" onclick="copyText(this, 'Refine este prompt alterando apenas a iluminação para low key. Preserve personagem, ambiente, lente, enquadramento e composição.')">
+        <div class="copy-card-mode">Refinar</div>
+        <div class="copy-card-text">"Refine este prompt alterando apenas a iluminação para low key. Preserve personagem, ambiente, lente, enquadramento e composição."</div>
+        <button class="copy-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+      </div>
+
+      <div class="copy-card" onclick="copyText(this, 'Use este Character Sheet como identidade principal e adapte o prompt para a pessoa da ficha. Mantenha ação, cenário e linguagem visual.')">
+        <div class="copy-card-mode">Character Sheet</div>
+        <div class="copy-card-text">"Use este Character Sheet como identidade principal e adapte o prompt para a pessoa da ficha. Mantenha ação, cenário e linguagem visual."</div>
+        <button class="copy-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+      </div>
+
+      <div class="copy-card" onclick="copyText(this, 'Aplique este uniforme à persona. Use a foto apenas como referência de vestuário e não copie rosto, corpo, pose ou ambiente.')">
+        <div class="copy-card-mode">Uniforme</div>
+        <div class="copy-card-text">"Aplique este uniforme à persona. Use a foto apenas como referência de vestuário e não copie rosto, corpo, pose ou ambiente."</div>
+        <button class="copy-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+      </div>
+
+      <div class="copy-card" onclick="copyText(this, 'Crie primeiro uma Descritiva 360 deste caminhão. Depois monte uma cena em rodovia preservando cores, cabine, eixos e grafismos.')">
+        <div class="copy-card-mode">Produto / Veículo</div>
+        <div class="copy-card-text">"Crie primeiro uma Descritiva 360 deste caminhão. Depois monte uma cena em rodovia preservando cores, cabine, eixos e grafismos."</div>
+        <button class="copy-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+      </div>
+
+      <div class="copy-card" onclick="copyText(this, 'Gere três variações mudando somente o enquadramento: uma wide, uma medium e uma close. Preserve todo o restante.')">
+        <div class="copy-card-mode">Variações</div>
+        <div class="copy-card-text">"Gere três variações mudando somente o enquadramento: uma wide, uma medium e uma close. Preserve todo o restante."</div>
+        <button class="copy-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+      </div>
+    </div>
+
+    <div class="tip-bar">
+      <span>💡</span>
+      <div><strong>Quanto mais claro estiver o que deve permanecer e o que deve mudar, mais preciso será o refinamento.</strong> Especificar os dois lados elimina ambiguidade e reduz retrabalho.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <strong>Image Prompt Studio</strong> &nbsp;·&nbsp; Guia prático de uso &nbsp;·&nbsp; Psicodelia Vision
+</footer>
+
+<div id="toast">Copiado!</div>
+
+<script>
+function copyText(card, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  });
+}
+</script>
+</body>
+</html>
